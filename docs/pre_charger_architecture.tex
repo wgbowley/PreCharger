@@ -1,0 +1,60 @@
+\documentclass{article}
+
+\begin{document}
+
+\section{Introduction}
+This document compares the RC time circuit pre-charger with a buck converter style active pre-charger for the 
+RMIT racing car battery pack.
+
+\section{RC Time Circuit Pre-Charger [1]}
+The RC time circuit pre-charger is a simple and redundant design that uses a resistor and capacitor to limit the inrush current when connecting the battery
+pack to the high voltage system. The RC time constant itself is a fundamental property of the discrete components used in the circuit, though can be affected
+by parasitic capacitance and resistance in the circuit. However compared to the expected value of the 1-4.2k$\Omega$ resistor and 100-1000$\mu$F capacitor, 
+the parasitic effects are most negligible if reasonable considerations are taken.
+
+\vspace{0.5cm}
+The RC circuit is feed by the high voltage (HV) system via a relay that closes the circuit to charge the DC linked capacitor and than the main relay is closed to
+connect the battery pack to the high voltage system. This ensure that no high inrush current is experienced by the main relay, which can cause damages it. And also components
+down the line due to di/dt coupling between HV and low voltage (LV) systems. It also ensures that the DC linked capacitor is not damaged due to the inrush either. Main 
+fault mode of this design seems to be relay failure or pulse power failure, which is inherent to any HV system, so not architecture specific.
+
+
+\section{Buck Converter Style Active Pre-Charger [2]}
+This design uses a buck converter style active pre-charger to limit the inrush current when connecting the battery pack to the HV system. This design is inherently more complex
+due to its control scheme and additional components (failure points) but can be in a smaller form factor, can hit the 90\% voltage target faster and lastly removes mechanical wear due
+to its solid state design. It also allows for current limiting, tuning and telemetry capabilities that the RC time circuit pre-charger doesn't have by default.
+
+
+\vspace{0.5cm}
+The control scheme is based on a voltage feedback loop that adjusts the duty cycle of the buck converter to maintain a constant voltage across the DC linked capacitor. However the design
+is more similar to a LC circuit due the inclusion of a power inductor in-series with the dc link capacitor. The resistor is mainly a shunt resistor for measuring line current, but given
+that inductive elements have resistance, the most accurate comparison is a switch-mode driven LRC circuit. Texas instruments reference design uses a comparator for current measuring 
+across the shunt and a n-channel FET for switching. Though its not clear if the design uses the FET only during pre-charging or if it is used as the main switch as well. If the FET is used
+as the main switch, it can be even more compact than the RC time circuit pre-charger, but it becomes a single source of failure for the entire system. The main fault mode of this design seems
+to be the FET failure, which can leave the HV system active even when the systems should be disabled.
+
+
+\section{Conclusion}
+The RC time circuit pre-charger is a simple and redundant design that is less likely to fail due to its simplicity, but the active approach can be more compact, faster and have more features.
+Due to the SAE being a mix competition, the active system can be more beneficial due to the tuning capabilities and points scored during the design event, but the RC time circuit pre-charger
+is the easier to ship fast but has less points potential. The final decision really is up to wether the team values potential points or freeing up time for other systems more. Specifically
+testing this subsystem due to the nature that this isn't a conceptually difficult nor untested technology, but it needs to be proven to work before any integration.
+
+\vspace{0.5cm}
+Due to my position as a recruit, I don't have the full picture of the team's priorities and resources but I do have time to investigate this as a possible future inclusion, So I will design and 
+computationally validate the design of an active pre-charger circuit as a reference for future work by myself or others. This will be done mainly through LTSPICE, equivalent circuit modelling
+and analytical calculations. I will also design a test bench for the active pre-charger encase the team decides to go with this design in the future, but I won't be able to build it due to time 
+constraints placed by other personal commitments. 
+
+
+\begin{thebibliography}{5}
+
+\bibitem{ti_brief} 
+\textit{Why Pre-Charge Circuits are Necessary in High-Voltage Systems}, Texas Instruments, Jan. 2023. [Online]. Available: \url{https://www.ti.com/lit/ab/slvafb0/slvafb0.pdf}
+
+\bibitem{ti_ref} 
+\textit{High-Voltage Solid-State Relay Active Pre-charge Reference Design (TIDA-050063)}, Texas Instruments, Jan. 2023. [Online]. Available: \url{https://www.ti.com/tool/TIDA-050063}
+
+\end{thebibliography}
+
+\end{document}
