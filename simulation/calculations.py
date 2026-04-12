@@ -12,8 +12,15 @@ Description:
     # L1 & R1 only for simplistically
 """
 
+from pathlib import Path
 from picounits import VOLTAGE, CAPACITANCE, INDUCTANCE, TIME, MILLI, MICRO
+from picounits.configuration.config import get_derived_units
 
+# Imports derived units
+BASE_DIR = Path(__file__).parent
+derived = get_derived_units(BASE_DIR / "units.ut")
+
+# System variables
 pack_voltage = 600 * VOLTAGE
 charge_time = 200 * MILLI * TIME
 
@@ -37,3 +44,7 @@ print(f"I_cap: {i_cap}, di_dt (slew_rate): {di_dt:.2f}, max_I: {i_resistor}")
 
 print(f"Charging: {R1 * C1:.3f}, filtering/switching: {L1/R1}")
 print(f"stored_energy: {1/2*C1*pack_voltage**2:.3f}")
+
+
+# FET selection
+print(f"max_voltage: {pack_voltage*1.5}, max_current: {2*i_resistor}")

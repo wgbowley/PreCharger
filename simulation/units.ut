@@ -1,0 +1,13 @@
+# Problem units - Derived from Base Dimensions (kg, m, s, etc) (si_metric)
+
+[version]
+format: 0.1.0
+
+[units.electrical]
+ε: kg^-1*m^-3*s^4*A^2
+σ: kg^-1*m^-3*s^3*A^2
+Ω: kg*m^2*s^-3*A^-2
+V: kg*m^2*s^-3*A^-1
+F: kg^-1*m^-2*s^4*A^2
+H: kg*m^2*s^-2*A^-2
+J·s: kg*m^2*s^-3
