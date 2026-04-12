@@ -28,7 +28,7 @@ C1 = 200 * MICRO * CAPACITANCE
 R1 = charge_time / (5 * C1)
 
 # Arbitrary inductance size
-L1 = 200 * MICRO * INDUCTANCE
+L1 = 100 * MICRO * INDUCTANCE
 
 # Power
 power_average = C1 * pack_voltage ** 2 / (2 * charge_time)
