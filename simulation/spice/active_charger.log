@@ -1,6 +1,6 @@
 LTspice 24.1.10 for Windows
 Circuit: C:\Users\WBowl\Documents\Work\client_projects\rmit_pre_charger\simulation\spice\active_charger.net
-Start Time: Mon Apr 13 08:11:49 2026
+Start Time: Mon Apr 13 18:12:04 2026
 Options: method=gear  abstol=1n  reltol=0.01  vntol=1m  trtol=7
 solver = Normal
 Maximum thread count: 12
@@ -14,11 +14,7 @@ volttol = 0.001
 Direct Newton iteration for .op point succeeded.
 Changing Tseed to 1e-08
 Changing Tseed to 1e-10
-Changing Tseed to 1e-07
-Changing Tseed to 1e-11
-Changing Tseed to 1e-06
-Changing Tseed to 1e-12
-Total elapsed time: 0.675 seconds.
+Total elapsed time: 2.159 seconds.
 
 Files loaded:
 C:\Users\WBowl\Documents\Work\client_projects\rmit_pre_charger\simulation\spice\active_charger.net

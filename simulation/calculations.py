@@ -13,13 +13,14 @@ Description:
 """
 
 from pathlib import Path
-from picounits import VOLTAGE, CAPACITANCE, INDUCTANCE, TIME, MILLI, MICRO
+from picounits import VOLTAGE, CAPACITANCE, INDUCTANCE, CURRENT, TIME, MILLI, MICRO, KILO
 from picounits.configuration.config import get_derived_units
 
 # Imports derived units
 BASE_DIR = Path(__file__).parent
 derived = get_derived_units(BASE_DIR / "units.ut")
 
+print(f"current design: {5 * (240 * MICRO * CAPACITANCE) * (4.7 * KILO * (VOLTAGE/CURRENT) )}")
 # System variables
 pack_voltage = 600 * VOLTAGE
 charge_time = 200 * MILLI * TIME

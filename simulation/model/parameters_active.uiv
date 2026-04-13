@@ -1,0 +1,48 @@
+[version]
+format: 0.1.0
+unit_frame: units.ut
+
+[note]
+# Analytical model for a RLC active pre-charger circuit solves the 
+# v_c = ir + L(di/dt) - v_s differential equation using transfer function
+# and ralston's method (to decrease progressing time)
+
+# Given the current usage of 200uF of dc linked capacitance. 
+# The calculations will consider that a fixed value and optimize
+# L1 & R1 only for simplistically
+
+[numerics]
+time_step:      100 n(s)
+time_domain:    500 m(s)
+msg_display:    25
+
+[model]
+ambient_temperature:    298.15 (K)
+battery_voltage:        600 (V)
+current_limit:          300 m(A)
+
+# Possible worst case of 5. Standard is ~10-20 depending on many conditions
+convection:     5.0 (W*m^-2*K^-1)
+
+[resistor]
+resistance:     40 (Ω)
+
+[inductor]
+# Bourns - 1140-561K-RC -> reference design TI
+resistance:     125 m(Ω)
+inductance:     560 u(H)
+
+[capacitor]
+resistance:     0.5 (Ω)     # Placeholder value (Unknown - ESR)
+capacitance:    200 u(F)    # DC linked capacitance
+
+[fet]
+# Wolfspeed - E3M0160120K -> lower current FET than reference design
+area:           0.000335 (m^2)
+rds:            208 m(Ω)
+thermal_mass:   0.85 (J*K^-1) 
+thermal_rate:   1.45 (K/W)
+
+[comparator]
+time_constant:  200 n(s)
+hyst_current:   50 m(A)

@@ -13,6 +13,18 @@
     "synctex",
     "xlabel",
     "ylabel",
-    "mplot"
+    "mplot",
+    "twinx",
+    "labelcolor",
+    "hyst",
+    "Wolfspeed",
+    "qstrip",
+    "Tmass",
+    "linestyle",
+    "figsize",
+    "xlim",
+    "pyqtgraph",
+    "PySide6",
+    "Trate"
   ]
 }
