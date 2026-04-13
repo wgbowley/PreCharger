@@ -1,0 +1,22 @@
+[version]
+format: 0.1.0
+unit_frame: units.ut
+
+[note]
+# Analytical model for a RC passive pre-charger circuit solves the
+# dv_c/dt = (v_s - v_c) / RC differential equation using euler methods
+
+[numerics]
+time_step:          100 n(s)
+time_domain:        500 m(s)
+msg_display:        25
+
+[model]
+battery_voltage:    600 (V)
+
+[resistor]
+resistance:         4.7 k(Ω)
+
+[capacitor]
+resistance:         0.5 (Ω)     # Placeholder value (Unknown - ESR)
+capacitance:        240 u(F)    # DC linked capacitance

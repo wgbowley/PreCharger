@@ -17,10 +17,12 @@ from picounits import (
     INDUCTANCE, LENGTH, TIME, ENERGY, POWER
 )
 
+
 def differential_voltage(v_s: f, ind: f, res: f, cap: f, v: f, dv_dt: f) -> f:
     """ calculates the rate of change of voltage within the cap """
     upper = v_s - res * cap * dv_dt - v
     return upper / (ind * cap)
+
 
 def rk_2nd_order_solve(v_s: f, ind: f, res: f, cap: f, v: f, dv_dt: f, t_s: f) -> f:
     """ Uses ralston method to solve dv/dt differential equation """
@@ -33,6 +35,7 @@ def rk_2nd_order_solve(v_s: f, ind: f, res: f, cap: f, v: f, dv_dt: f, t_s: f) -
 
     k2_dv_dt = differential_voltage(v_s, ind, res, cap, pred_v, pred_dv_dt)
     return (1/3 * k1_dv_dt + 2/3 * k2_dv_dt) * t_s
+
 
 class ActiveProblem:
     """ Defines the problem and solves it """
@@ -49,7 +52,7 @@ class ActiveProblem:
 
         self.msg_step = (5 * self.RC_constant) / (self.step * self.msg_count)
 
-    def solve(self) -> list[list, list, list]:
+    def solve(self, verbose: bool = True) -> list[list, list, list]:
         """ Solves the problem defined during Initialization """
         voltage_series = []
         current_series = []
@@ -102,7 +105,7 @@ class ActiveProblem:
             msg += 1
 
             # Prints out current state variables
-            if msg == int(self.msg_step):
+            if msg == int(self.msg_step) and verbose:
                 print(
                     f"t: {time*TIME:.3f}"
                     f", C_I: {C_current*CURRENT:.3f}"
@@ -113,18 +116,22 @@ class ActiveProblem:
                 )
                 msg = 0
 
-        average_power = sum(fet_power) / len(fet_power)
-        asymptotic_temp = self.F_Trate * average_power + self.ambient_temperature
-        frequency_max = self.battery_voltage / (2 * self.L_inductance * self.current_limit)
-        print(
-            f"====  Model Parameters ====\n"
-            f"F_avp: {average_power*POWER:.3f}",
-            f", F_t: {fet_temperature*TEMPERATURE:.3f}"
-            f", F_at: {asymptotic_temp*TEMPERATURE:.3f}"
-            f", di_dt: {self.battery_voltage/self.L_inductance*(VOLTAGE/INDUCTANCE):.3f}"
-            f", f_max: {frequency_max*(1/TIME):.3f}"
-            f"\n==========================="
-        )
+            if v > 0.99 * self.battery_voltage:
+                break
+
+        if verbose:
+            average_power = sum(fet_power) / len(fet_power)
+            asymptotic_temp = self.F_Trate * average_power + self.ambient_temperature
+            frequency_max = self.battery_voltage / (2 * self.L_inductance * self.current_limit)
+            print(
+                f"====  Model Parameters ====\n"
+                f"F_avp: {average_power*POWER:.3f}",
+                f", F_t: {fet_temperature*TEMPERATURE:.3f}"
+                f", F_at: {asymptotic_temp*TEMPERATURE:.3f}"
+                f", di_dt: {self.battery_voltage/self.L_inductance*(VOLTAGE/INDUCTANCE):.3f}"
+                f", f_max: {frequency_max*(1/TIME):.3f}"
+                f"\n==========================="
+            )
 
         return time_series * TIME, voltage_series * VOLTAGE, current_series * CURRENT
 

@@ -5,7 +5,7 @@ unit_frame: units.ut
 [note]
 # Analytical model for a RLC active pre-charger circuit solves the 
 # v_c = ir + L(di/dt) - v_s differential equation using transfer function
-# and ralston's method (to decrease progressing time)
+# and ralston's method
 
 # Given the current usage of 200uF of dc linked capacitance. 
 # The calculations will consider that a fixed value and optimize
@@ -34,7 +34,7 @@ inductance:     560 u(H)
 
 [capacitor]
 resistance:     0.5 (Ω)     # Placeholder value (Unknown - ESR)
-capacitance:    200 u(F)    # DC linked capacitance
+capacitance:    240 u(F)    # DC linked capacitance
 
 [fet]
 # Wolfspeed - E3M0160120K -> lower current FET than reference design

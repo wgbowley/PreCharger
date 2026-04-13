@@ -25,6 +25,10 @@
     "xlim",
     "pyqtgraph",
     "PySide6",
-    "Trate"
+    "Trate",
+    "NULLSET",
+    "logspace",
+    "xscale",
+    "yscale"
   ]
 }
