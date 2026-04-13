@@ -13,8 +13,8 @@ unit_frame: units.ut
 
 [numerics]
 time_step:      100 n(s)
-time_domain:    500 m(s)
-msg_display:    25
+time_domain:    10   (s)
+msg_display:    1
 
 [model]
 ambient_temperature:    298.15 (K)

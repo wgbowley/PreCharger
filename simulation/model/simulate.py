@@ -9,7 +9,7 @@ Descriptions:
 from math import exp
 from builtins import float as f
 
-from picounits import strip_quantity as qstrip
+from picounits import Q, strip_quantity as qstrip
 from picounits.extensions.loader import DynamicLoader
 
 from picounits import (
@@ -52,12 +52,13 @@ class ActiveProblem:
 
         self.msg_step = (5 * self.RC_constant) / (self.step * self.msg_count)
 
-    def solve(self, verbose: bool = True) -> list[list, list, list]:
+    def solve(self, verbose: bool = True) -> list[Q,Q,Q]:
         """ Solves the problem defined during Initialization """
         voltage_series = []
         current_series = []
         time_series = []
         fet_power = []
+        r_power = []
 
         fet_temperature = self.ambient_temperature
 
@@ -98,6 +99,7 @@ class ActiveProblem:
             voltage_series.append(v)
             current_series.append(C_current)
             fet_power.append(heating)
+            r_power.append(C_current**2 * self.R_resistance)
 
             # Updates states for next step
             v, dv_dt = v + dv_dt * self.step, dv_dt + dv
@@ -133,7 +135,10 @@ class ActiveProblem:
                 f"\n==========================="
             )
 
-        return time_series * TIME, voltage_series * VOLTAGE, current_series * CURRENT
+        time = max(time_series)
+        current = max(current_series)
+        avg_r_power = sum(r_power) / len(r_power)
+        return current * CURRENT, avg_r_power * POWER, time * TIME
 
     def extract_and_strip(self, parameters: DynamicLoader) -> None:
         """ Extracts and strips units from configuration file while validating """

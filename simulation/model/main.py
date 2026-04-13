@@ -15,12 +15,11 @@ Descriptions:
 from pathlib import Path
 from numpy import logspace
 from matplotlib import pyplot as mplot
-# from matplotlib import cm
 
 from picounits.extensions.parser import Parser
 from picounits import Q, unit_validator, CURRENT, POWER, TIME, NULLSET, RESISTANCE
 
-# from simulate import ActiveProblem
+from simulate import ActiveProblem
 
 # Pulls the two parameter
 BASE_DIR = Path(__file__).parent
@@ -33,9 +32,12 @@ p_max = 50 * POWER
 t_max = 5 * TIME
 
 # Base values
-v_s = active_parameters.model.battery_voltage
-r = active_parameters.resistor.resistance + active_parameters.capacitor.resistance
-c = active_parameters.capacitor.capacitance
+v_s = passive_parameters.model.battery_voltage
+r_p = passive_parameters.resistor.resistance + passive_parameters.capacitor.resistance
+c_p = passive_parameters.capacitor.capacitance
+
+r_a = active_parameters.resistor.resistance + active_parameters.capacitor.resistance
+c_a = active_parameters.capacitor.capacitance
 
 @unit_validator(NULLSET)
 def passive_stress(voltage: Q, resistance: Q, capacitance: Q) -> Q:
@@ -46,23 +48,43 @@ def passive_stress(voltage: Q, resistance: Q, capacitance: Q) -> Q:
 
     return current + power + time
 
-resistances = logspace(-1, 4, 500)
-stresses = [passive_stress(v_s, r_val * RESISTANCE, c).stripped for r_val in resistances]
+@unit_validator(NULLSET)
+def active_stress(i_peak: Q, r_power: Q, time: Q) -> Q:
+    """ Calculates the normalized system stress """
+    return i_peak / i_max + r_power / p_max + time / t_max
 
-min_stress = min(stresses)
-best_r = resistances[stresses.index(min_stress)]
-print(f"The optimal resistance is {best_r:.2f} Ohms with a stress of {min_stress:.2f}")
+# Calculates the passive stresses & active stresses
+resistances = logspace(-1, 4, 100)
+passive_stresses = [
+    passive_stress(v_s, r_val * RESISTANCE, c_p).stripped 
+    for r_val in resistances
+]
+
+active_stresses = []
+for r_val in resistances:
+    r_q = r_val * RESISTANCE
+    print(f"Solving active pre-charge problem with {r_q}...")
+
+    active_parameters.resistor.resistance = r_q
+    problem = ActiveProblem(active_parameters)
+    i, p, t = problem.solve(verbose=False)
+    active_stresses.append(active_stress(i, p, t).stripped)
 
 
 # Plotting
 mplot.figure(figsize=(10, 6))
-mplot.plot(resistances, stresses)
+
+mplot.plot(resistances, passive_stresses, label='Passive Pre-charge', linewidth=2)
+mplot.plot(resistances, active_stresses, label='Active Pre-charge', linewidth=2, linestyle='--')
+
+mplot.xscale('log')
 mplot.yscale('log')
+
+# Add interesting annotations
 mplot.xlabel('Resistance (Ohm)')
 mplot.ylabel('System Stress (Normalized)')
-mplot.title(f'Resistor Value vs. System Stress | c_dc: {c:.3f} v_s: {v_s:.3f}')
-mplot.grid(True, which="both", ls="-")
-mplot.show()
+mplot.title(f'Comparison: Passive vs. Active Stress | $V_s$: {v_s.stripped:.1f}V')
+mplot.legend()
+mplot.grid(True, which="both", ls="-", alpha=0.3)
 
-# problem = ActiveProblem(active_parameters)
-# time, voltage, current = problem.solve(False)
+mplot.show()
