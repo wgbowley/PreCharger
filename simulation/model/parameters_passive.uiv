@@ -9,7 +9,7 @@ unit_frame: units.ut
 [numerics]
 time_step:          100 n(s)
 time_domain:        10   (s)
-msg_display:        1
+msg_display:        100
 
 [model]
 battery_voltage:    600 (V)

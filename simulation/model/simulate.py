@@ -18,22 +18,25 @@ from picounits import (
 )
 
 
-def differential_voltage(v_s: f, ind: f, res: f, cap: f, v: f, dv_dt: f) -> f:
-    """ calculates the rate of change of voltage within the cap """
+def differential_slew_state(v_s: f, ind: f, res: f, cap: f, v: f, dv_dt: f) -> f:
+    """ calculates the rate of change of the transfer function """
     upper = v_s - res * cap * dv_dt - v
     return upper / (ind * cap)
 
+def differential_voltage(v_s: f, v_c: f, rc: f) -> f:
+    """ Calculates the rate of change of the voltage within the cap"""
+    return (v_s - v_c) / rc
 
 def rk_2nd_order_solve(v_s: f, ind: f, res: f, cap: f, v: f, dv_dt: f, t_s: f) -> f:
     """ Uses ralston method to solve dv/dt differential equation """
     k1_v = v
-    k1_dv_dt = differential_voltage(v_s, ind, res, cap, v, dv_dt)
+    k1_dv_dt = differential_slew_state(v_s, ind, res, cap, v, dv_dt)
 
     # Calculates derivative at predicted next position
     pred_v = v + 3/4 * k1_v * t_s
     pred_dv_dt = dv_dt + 3/4 * k1_dv_dt * t_s
 
-    k2_dv_dt = differential_voltage(v_s, ind, res, cap, pred_v, pred_dv_dt)
+    k2_dv_dt = differential_slew_state(v_s, ind, res, cap, pred_v, pred_dv_dt)
     return (1/3 * k1_dv_dt + 2/3 * k2_dv_dt) * t_s
 
 
@@ -50,7 +53,7 @@ class ActiveProblem:
         self.upper_threshold = self.current_limit - self.Comp_h_curr
         self.lower_threshold = self.upper_threshold - self.Comp_h_curr
 
-        self.msg_step = (5 * self.RC_constant) / (self.step * self.msg_count)
+        self.msg_step = int((5 * self.RC_constant) / (self.step * self.msg_count))
 
     def solve(self, verbose: bool = True) -> list[Q,Q,Q]:
         """ Solves the problem defined during Initialization """
@@ -107,7 +110,7 @@ class ActiveProblem:
             msg += 1
 
             # Prints out current state variables
-            if msg == int(self.msg_step) and verbose:
+            if msg > self.msg_step and verbose:
                 print(
                     f"t: {time*TIME:.3f}"
                     f", C_I: {C_current*CURRENT:.3f}"
@@ -165,3 +168,70 @@ class ActiveProblem:
         self.F_Trate = qstrip(parameters.fet.thermal_rate, TEMPERATURE / POWER)
         self.Comp_t_cons = qstrip(parameters.comparator.time_constant, TIME)
         self.Comp_h_curr = qstrip(parameters.comparator.hyst_current, CURRENT)
+
+
+class PassiveProblem:
+    """ Defines the problem and solves it"""
+    def __init__(self, parameters: DynamicLoader) -> None:
+        """ Initializes the problem & extracts / validates / strip qualities """
+        self.extract_and_strip(parameters)
+
+        self.total_res = self.R_resistance + self.C_resistance
+        self.rc_constant = self.total_res * self.C_capacitance
+
+        self.msg_step = int((5 * self.rc_constant) / (self.step * self.msg_count))
+
+    def solve(self, verbose: bool = True) -> tuple[Q,Q,Q]:
+        """ Solves the problem defined during the initialization """
+        time_series = []
+        voltage_series = []
+        current_series = []
+        r_power_series = []
+
+        time = v = dv_dt = C_energy = msg = 0.0
+        while time < self.domain:
+            # Calculates capacitor voltage & energy delta
+            C_current = self.C_capacitance * dv_dt
+            C_energy += C_current * v * self.step
+
+            # Calculates the dv/dt of the system
+            dv_dt = differential_voltage(self.battery_voltage, v, self.rc_constant)
+            v += dv_dt * self.step
+            time += self.step
+            msg += 1
+
+            # Saves current & voltage state
+            time_series.append(time)
+            voltage_series.append(v)
+            current_series.append(C_current)
+            r_power_series.append(C_current ** 2 * self.R_resistance)
+
+            if msg > self.msg_step and verbose:
+                print(
+                    f"t: {time*TIME:.3f}"
+                    f", C_v: {v:.3f}"
+                    f", C_I: {C_current*CURRENT:.3f}"
+                    f", C_E: {C_energy*ENERGY:.3f}"
+                )
+                msg = 0
+
+            if v > 0.99 * self.battery_voltage:
+                break
+
+        time = max(time_series)
+        current = max(current_series)
+        avg_r_power = sum(r_power_series) / len(r_power_series)
+        return current * CURRENT, avg_r_power * POWER, time * TIME
+
+    def extract_and_strip(self, parameters: DynamicLoader) -> None:
+        """ Extracts and strips units from configuration file while validating """
+        self.step = qstrip(parameters.numerics.time_step, TIME)
+        self.domain = qstrip(parameters.numerics.time_domain, TIME)
+        self.msg_count = parameters.numerics.msg_display.stripped
+
+        self.battery_voltage = qstrip(parameters.model.battery_voltage, VOLTAGE)
+
+        self.R_resistance = qstrip(parameters.resistor.resistance, VOLTAGE / CURRENT)
+
+        self.C_resistance = qstrip(parameters.capacitor.resistance, VOLTAGE / CURRENT)
+        self.C_capacitance = qstrip(parameters.capacitor.capacitance, CAPACITANCE)
