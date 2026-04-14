@@ -57,15 +57,14 @@ class ActiveProblem:
 
     def solve(self, verbose: bool = True) -> list[Q,Q,Q]:
         """ Solves the problem defined during Initialization """
-        voltage_series = []
+        # voltage_series = [], fet_power = []
         current_series = []
         time_series = []
-        fet_power = []
         r_power = []
 
         fet_temperature = self.ambient_temperature
 
-        comp_out = target = time = v = msg = dv_dt = C_energy = 0
+        comp_out = target = time = v = msg = dv_dt = C_energy = buffer = 0
         while time < self.domain:
             C_current = self.C_capacitance * dv_dt
 
@@ -97,16 +96,18 @@ class ActiveProblem:
                 self.C_capacitance, v, dv_dt, self.step
             )
 
-            # Saves current & voltage state
-            time_series.append(time)
-            voltage_series.append(v)
-            current_series.append(C_current)
-            fet_power.append(heating)
-            r_power.append(C_current**2 * self.R_resistance)
+            # Saves loop results (limits memory usage)
+            if buffer > self.buffer:
+                # fet_power.append(heating), voltage_series.append(v)
+                time_series.append(time)
+                current_series.append(C_current)
+                r_power.append(C_current**2 * self.R_resistance)
+                buffer = 0.0
 
             # Updates states for next step
             v, dv_dt = v + dv_dt * self.step, dv_dt + dv
             time += self.step
+            buffer += self.step
             msg += 1
 
             # Prints out current state variables
@@ -124,29 +125,18 @@ class ActiveProblem:
             if v > 0.99 * self.battery_voltage:
                 break
 
-        if verbose:
-            average_power = sum(fet_power) / len(fet_power)
-            asymptotic_temp = self.F_Trate * average_power + self.ambient_temperature
-            frequency_max = self.battery_voltage / (2 * self.L_inductance * self.current_limit)
-            print(
-                f"====  Model Parameters ====\n"
-                f"F_avp: {average_power*POWER:.3f}",
-                f", F_t: {fet_temperature*TEMPERATURE:.3f}"
-                f", F_at: {asymptotic_temp*TEMPERATURE:.3f}"
-                f", di_dt: {self.battery_voltage/self.L_inductance*(VOLTAGE/INDUCTANCE):.3f}"
-                f", f_max: {frequency_max*(1/TIME):.3f}"
-                f"\n==========================="
-            )
-
         time = max(time_series)
         current = max(current_series)
         avg_r_power = sum(r_power) / len(r_power)
+
         return current * CURRENT, avg_r_power * POWER, time * TIME
 
     def extract_and_strip(self, parameters: DynamicLoader) -> None:
         """ Extracts and strips units from configuration file while validating """
         self.step = qstrip(parameters.numerics.time_step, TIME)
         self.domain = qstrip(parameters.numerics.time_domain, TIME)
+        self.buffer = qstrip(parameters.numerics.time_buffer, TIME)
+
         self.msg_count = parameters.numerics.msg_display.stripped
 
         self.ambient_temperature = qstrip(parameters.model.ambient_temperature, TEMPERATURE)
@@ -194,6 +184,8 @@ class PassiveProblem:
             C_current = self.C_capacitance * dv_dt
             C_energy += C_current * v * self.step
 
+            R_power = C_current ** 2 * self.R_resistance
+
             # Calculates the dv/dt of the system
             dv_dt = differential_voltage(self.battery_voltage, v, self.rc_constant)
             v += dv_dt * self.step
@@ -204,11 +196,12 @@ class PassiveProblem:
             time_series.append(time)
             voltage_series.append(v)
             current_series.append(C_current)
-            r_power_series.append(C_current ** 2 * self.R_resistance)
+            r_power_series.append(R_power)
 
             if msg > self.msg_step and verbose:
                 print(
                     f"t: {time*TIME:.3f}"
+                    f", R_p: {R_power*POWER:.3f}"
                     f", C_v: {v:.3f}"
                     f", C_I: {C_current*CURRENT:.3f}"
                     f", C_E: {C_energy*ENERGY:.3f}"
@@ -221,6 +214,7 @@ class PassiveProblem:
         time = max(time_series)
         current = max(current_series)
         avg_r_power = sum(r_power_series) / len(r_power_series)
+
         return current * CURRENT, avg_r_power * POWER, time * TIME
 
     def extract_and_strip(self, parameters: DynamicLoader) -> None:

@@ -36,7 +36,7 @@
 * Release to Web
 *
 *****************************************************************************
-.SUBCKT UCC27517_TRANS IN+ IN- GND OUT VDD
+.SUBCKT UCC27517 IN+ IN- GND OUT VDD
 E_U2_E1         U2_N16775419 OUT VALUE { IF(V(DRV_G, 0) > 0.5, 5, -5) }
 E_U2_E2         OUT U2_N16775471 VALUE { IF(V(DRV_G, 0) > 0.5, -5, 5) }
 E_U2_E4         U2_N16775355 0 TABLE { V(VDD, 0) } 

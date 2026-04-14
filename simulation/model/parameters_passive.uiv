@@ -7,7 +7,7 @@ unit_frame: units.ut
 # dv_c/dt = (v_s - v_c) / RC differential equation using euler methods
 
 [numerics]
-time_step:          100 n(s)
+time_step:          50  u(s)
 time_domain:        10   (s)
 msg_display:        100
 
@@ -15,7 +15,7 @@ msg_display:        100
 battery_voltage:    600 (V)
 
 [resistor]
-resistance:         4.7 k(Ω)
+resistance:         500 (Ω)
 
 [capacitor]
 resistance:         0.5 (Ω)     # Placeholder value (Unknown - ESR)

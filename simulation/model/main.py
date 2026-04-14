@@ -9,6 +9,11 @@ Descriptions:
     Reference:
     - open parameters_active.uiv for simulation details
     - open parameters_passive.uiv for simulation details
+    
+    DOCS:
+    # May take 1-5 minutes to solve due to the 50nS of the active pre-charger circuit. 
+    # This is due to comparator and the di/dt being quite massive. So to control it. The
+    # loop has to be very fast.
 """
 
 
@@ -26,13 +31,16 @@ BASE_DIR = Path(__file__).parent
 active_parameters = Parser.open(BASE_DIR / "parameters_active.uiv", BASE_DIR / "units.ut")
 passive_parameters = Parser.open(BASE_DIR / "parameters_passive.uiv", BASE_DIR / "units.ut")
 
+problem = ActiveProblem(active_parameters)
+print(problem.solve())
+
+problem = PassiveProblem(passive_parameters)
+print(problem.solve())
+
 # normalization factors
 i_max = 1 * CURRENT
 p_max = 50 * POWER
 t_max = 5 * TIME
-
-problem = PassiveProblem(passive_parameters)
-print(problem.solve())
 
 # Base values
 v_s = passive_parameters.model.battery_voltage
@@ -43,55 +51,58 @@ r_a = active_parameters.resistor.resistance + active_parameters.capacitor.resist
 c_a = active_parameters.capacitor.capacitance
 
 
+@unit_validator(NULLSET)
+def passive_stress(voltage: Q, resistance: Q, capacitance: Q) -> Q:
+    """ Calculates the normalized system stress """
+    current = voltage / (resistance*i_max)
+    power   = voltage ** 2 / (10*resistance * p_max)
+    time    = 5 * resistance * capacitance / t_max
 
-# @unit_validator(NULLSET)
-# def passive_stress(voltage: Q, resistance: Q, capacitance: Q) -> Q:
-#     """ Calculates the normalized system stress """
-#     current = voltage / (resistance*i_max)
-#     power   = voltage ** 2 / (10*resistance * p_max)
-#     time    = 5 * resistance * capacitance / t_max
+    return current + power + time
 
-#     return current + power + time
+@unit_validator(NULLSET)
+def active_stress(i_peak: Q, r_power: Q, time: Q) -> Q:
+    """ Calculates the normalized system stress """
+    return i_peak / i_max + r_power / p_max + time / t_max
 
-# @unit_validator(NULLSET)
-# def active_stress(i_peak: Q, r_power: Q, time: Q) -> Q:
-#     """ Calculates the normalized system stress """
-#     return i_peak / i_max + r_power / p_max + time / t_max
+# Calculates the passive stresses & active stresses
+resistances = logspace(-1, 4, 50)
+passive_stresses = [
+    passive_stress(v_s, r_val * RESISTANCE, c_p).stripped
+    for r_val in resistances
+]
 
-# # Calculates the passive stresses & active stresses
-# resistances = logspace(-1, 4, 5)
-# passive_stresses = [
-#     passive_stress(v_s, r_val * RESISTANCE, c_p).stripped 
-#     for r_val in resistances
-# ]
+index = 0
+length = len(resistances)
+active_stresses = []
+for r_val in resistances:
+    r_q = r_val * RESISTANCE
 
-# active_stresses = []
-# for r_val in resistances:
-#     r_q = r_val * RESISTANCE
-#     print(f"Solving active pre-charge problem with {r_q}...")
+    active_parameters.resistor.resistance = r_q
+    problem = ActiveProblem(active_parameters)
+    i, p, t = problem.solve(verbose=False)
+    active_stresses.append(active_stress(i, p, t).stripped)
 
-#     active_parameters.resistor.resistance = r_q
-#     problem = ActiveProblem(active_parameters)
-#     i, p, t = problem.solve(verbose=False)
-#     active_stresses.append(active_stress(i, p, t).stripped)
+    index += 1
+    print(f"{index}:{length} | Solved active problem @ {r_q:.3f} | {i:.3f}, {p:.3f}, {t:.3f}")
 
 
-# # Plotting
-# mplot.figure(figsize=(10, 6))
+# Plotting
+mplot.figure(figsize=(10, 6))
 
-# mplot.plot(resistances, passive_stresses, label='Passive Pre-charge', linewidth=2)
-# mplot.plot(
-#     resistances, active_stresses, label='Active Pre-charge', linewidth=2, linestyle='--'
-# )
+mplot.plot(resistances, passive_stresses, label='Passive', linewidth=2)
+mplot.plot(
+    resistances, active_stresses, label='Active', linewidth=2, linestyle='--'
+)
 
-# mplot.xscale('log')
-# mplot.yscale('log')
+mplot.xscale('log')
+mplot.yscale('log')
 
-# # Add interesting annotations
-# mplot.xlabel('Resistance (Ohm)')
-# mplot.ylabel('System Stress (Normalized)')
-# mplot.title(f'Comparison: Passive vs. Active Stress | $V_s$: {v_s.stripped:.1f}V')
-# mplot.legend()
-# mplot.grid(True, which="both", ls="-", alpha=0.3)
+# Add interesting annotations
+mplot.xlabel('Resistance (Ohm)')
+mplot.ylabel('System Stress (Normalized)')
+mplot.title(f'Comparison: Passive vs. Active Stress | $V_s$: {v_s.stripped:.1f}V')
+mplot.legend()
+mplot.grid(True, which="both", ls="-", alpha=0.3)
 
-# mplot.show()
+mplot.show()

@@ -12,9 +12,11 @@ unit_frame: units.ut
 # L1 & R1 only for simplistically
 
 [numerics]
-time_step:      100 n(s)
+time_step:      50  n(s)
 time_domain:    10   (s)
-msg_display:    1
+time_buffer:    100 u(s)
+
+msg_display:    100
 
 [model]
 ambient_temperature:    298.15 (K)
@@ -25,7 +27,7 @@ current_limit:          300 m(A)
 convection:     5.0 (W*m^-2*K^-1)
 
 [resistor]
-resistance:     40 (Ω)
+resistance:     500 (Ω)
 
 [inductor]
 # Bourns - 1140-561K-RC -> reference design TI
@@ -44,5 +46,5 @@ thermal_mass:   0.85 (J*K^-1)
 thermal_rate:   1.45 (K/W)
 
 [comparator]
-time_constant:  200 n(s)
+time_constant:  100 n(s)
 hyst_current:   50 m(A)
