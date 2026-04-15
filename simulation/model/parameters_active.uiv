@@ -27,12 +27,12 @@ current_limit:          300 m(A)
 convection:     5.0 (W*m^-2*K^-1)
 
 [resistor]
-resistance:     500 (Ω)
+resistance:     5 (Ω)
 
 [inductor]
 # Bourns - 1140-561K-RC -> reference design TI
 resistance:     125 m(Ω)
-inductance:     560 u(H)
+inductance:     1.5 m(H)
 
 [capacitor]
 resistance:     0.5 (Ω)     # Placeholder value (Unknown - ESR)

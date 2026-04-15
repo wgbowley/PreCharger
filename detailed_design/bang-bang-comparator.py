@@ -18,11 +18,11 @@ derived = get_derived_units(BASE_DIR / "units.ut")
 # System variables
 v_main = 600 * VOLTAGE
 v_iso = 5 * VOLTAGE
-r_shunt = 500 * MILLI * RESISTANCE
+r_shunt = 5 * RESISTANCE
 r_power = 500 * RESISTANCE
 
-i_peak = 200 * MILLI * CURRENT
-i_min = 5 * MILLI * CURRENT
+i_peak = 500 * MILLI * CURRENT
+i_min = 200 * MILLI * CURRENT
 
 # Hysteresis triggers (high, low)
 v_h = i_peak * r_shunt
@@ -71,10 +71,10 @@ for i in standard_resistor_series:
         print(f"Comparator {r1:.3f}, {r2:.3f}, {r3:.3f}| v_l: {vl:.3f}, v_h: {vh:.3f}")
     except Exception as err:
         continue
-    
-r1 = 39 * KILO * RESISTANCE
-r2 = 1 * KILO * RESISTANCE
-r3 = 20 * RESISTANCE
+
+r1 = 15.00 * KILO * RESISTANCE
+r2 = 10 * KILO * RESISTANCE
+r3 = 6 * KILO * RESISTANCE
 
 v_h = r3 * v_iso * (r1 + r2) / (r1 * r2 + r1 * r3 + r2 * r3)
 v_l = v_h - r3 * (v_iso - v_h) / r2
