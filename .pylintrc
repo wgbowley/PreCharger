@@ -1,5 +1,6 @@
 [MESSAGES CONTROL]
 disable = C0103     # Invalid Name
+disable = W0718     # Exception to general
 
 [FORMAT]
 max-line-length=95 # Maximum number of characters on a single line.

@@ -1,6 +1,7 @@
 *.pyc
 *.log
 *.raw
+*.txt
 
 simulation/spice/active_charger.op.raw
 simulation/spice/active_charger.op.raw

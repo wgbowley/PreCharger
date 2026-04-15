@@ -1,4 +1,4 @@
-### Active pre-charger circuit (recruit project)
+### Hybrid pre-charger circuit (recruit project)
 
 Objective:
 - To design a 600V active pre-charger circuit
