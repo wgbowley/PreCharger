@@ -28,7 +28,7 @@ Man, I love abstractions. Nevertheless, thank you for reading, and I hope you fi
 ```
 @misc{Bowley_2026,
   author = {Bowley, William},
-  title = {{CoilGun}},
+  title = {{PreCharger}},
   url = {https://github.com/wgbowley/PreCharger},
   year = {2026},
   note = {GitHub repository},
