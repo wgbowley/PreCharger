@@ -1,0 +1,89 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{float} 
+
+\title{Tractive System Pre-charger Module (First Draft)}
+\author{William Bowley (S4226716) | Recruit Power Train}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+The pre-charge module exists to mitigate inrush current when the accumulator is connected to the 
+tractive system. This is because of the existence of a large bulk capacitance placed in parallel 
+with the accumulator to manage line transients from large dynamic current sinks like the motors.
+
+\vspace{0.5cm}
+The high-level system architecture was predefined by the system leads to be based on a passive RC 
+(resistor \& capacitor) circuit because start-up isn't a competition criterion and hence increasing 
+$\tau$ to expand the duration of the current pulse is optimal and it increases margins. Most importantly, 
+the passive pre-charger is extremely reliable due to minimal failure points compared to alternatives.
+
+
+\vspace{0.5cm}
+The pre-charge sequence is as follows: the negative HV contactor connects the accumulator negative terminal to the
+system reference. The pre-charge contactor then is allowed to close, which enables current flow through the 
+pre-charge resistor into the DC link capacitance. Once the DC link voltage approaches the accumulator voltage
+approximately 3$\tau$, the main positive contactor is closed. The pre-charge contactor is subsequently opened
+to remove the series resistance from the power path. 
+
+\section{Constraints}
+
+Solid-state relays or FETs are not allowed due to RE.5.6.5 `The pre-charge relay must be a mechanical type relay'
+hence a mechanical relay will be used as the pre-charge contactor. All components that dissipate heat must be 
+monitored for thermal overload. The PDOC must open the shutdown circuit before exceeding the maximum operating temperature.
+However, due to this design being validated to run continuously even in a faulted state, the PDOC can be omitted.
+
+\vspace{0.5cm}
+Importantly, the mechanical relay must be normally open such that if shutdown (SDC) is low, the accumulator must be disconnected
+from the tractive system. 
+
+\section{Detailed Design}
+The PWR263S-35 power resistor was chosen due to its 35 W rating and its package being suitable for SMD (TO-263). It was decided that
+using a few resistors in series would be better as they distribute the heat. The KT24-1A-40L-SMD mechanical switch was
+chosen because of its 1 A continuous current rating and low coil resistance of 150 to 200 m$\Omega$.
+
+\vspace{0.5cm}
+The activation time was arbitrarily set to 4.5 s which at a 3$\tau$ requirement resulted in 6x1 k$\Omega$ resistors from `system\_stress.py'.
+The maximal inrush current hence was $\sim$100 mA with 43.2 J being delivered to the DC link capacitor.
+
+\vspace{0.5cm}
+A worst case continuous fault leads to each resistor absorbing 10 W continuous which is $\sim$1/3.5 of their maximum rating.
+The mechanical relay is 
+connected to \texttt{pre\_aux\_out} \& \texttt{pre\_aux\_in} from the AMS main board to enable or disable it. With \texttt{prech\_coil\_pos} \&
+\texttt{prech\_coil\_neg} supplying the current to activate the relay. This design reflects the R26 AMS architecture. 
+
+\vspace{0.5cm}
+A 4 pin XH 2.54 mm JST connector was selected due to it being the standard for a low voltage application like the AMS connection to pre-charger. A Molex
+connector was used for the input and output of the HV line specifically a Molex Mini-Fit Jr which is rated for 600 V while having a reasonable form factor.
+However it is a 4 pin connector hence only 2 pins are used which are orthogonal to each other. The trace width is set to 0.80 mm and the trace spacing is
+1.25 mm for both low voltage and high voltage components.
+
+
+\section{Conclusion}
+The design proposed here should function correctly under standard operating conditions. Images and data-sheets can be found within `1-deliverable-system'.
+The Bourns PWR263S-35-1001F resistor should have a significant safety margin for both power dissipation (10 W vs 35 W) and operating voltage (600 V vs 700 V).
+
+By designing a series-string passive pre-charger, the thermal load is distributed across the PCB. Furthermore, the integration of a mechanical reed relay 
+ensures full compliance with Rule RE.5.6.5, providing the required isolated fail-safe state when the shutdown circuit is de-energized. This approach
+balances the robust and reliable requirements of a tractive system and also the strict safety constraints.
+
+
+\section{Bill of Materials}
+\begin{table}[H]
+\centering
+\caption{Estimated Component and Manufacturing Costs (AUD)}
+\begin{tabular}{|l|l|c|c|r|}
+\hline
+    \textbf{Component} & \textbf{Part Number} & \textbf{Qty} & \textbf{Unit Price} & \textbf{Total} \\ \hline
+    Power Resistor (1k$\Omega$) & Bourns PWR263S-35-1001F & 6 & \$5.15 & \$30.90 \\ \hline
+    Reed Relay & Standex KT24-1A-40L-SMD & 1 & \$8.40 & \$8.40 \\ \hline
+    HV Header (4-pin) & Molex Mini-Fit Jr (39-29-1048) & 2 & \$1.70 & \$3.40 \\ \hline
+    LV Header (4-pin) & JST XH (B4B-XH-A) & 1 & \$0.21 & \$0.21 \\ \hline
+    PCB Manufacturing & Custom 2-Layer Board & 1 & \$10.00 & \$10.00 \\ \hline
+    \multicolumn{4}{|l|}{\textbf{Subtotal}} & \textbf{\$52.91} \\ \hline
+\end{tabular}
+\end{table}
+
+\end{document}

@@ -1,4 +1,12 @@
-### Pre-Charger circuit (recruit project)
+### Hybrid pre-charger circuit (recruit project)
+
+Objective:
+- To design a 600V active pre-charger circuit
+- To ensure the design meets the requirements set by `saea` 
+- To validate assumptions via analytical methods and lump-parameter simulation 
+- To compare RC pre-charger with active pre-charger and define usage boundaries
+
+## Report (Quite abstract): [Active vs Passive Pre-chargers](docs\raws\charger_report.tex)
 
 Thank you for checking out my "side quest" into high voltage prechargers. It was generally a joy, and the elegance of some of these designs is truly exceptional. 
 I had never really considered HV as a possible domain of exploration. However, after breaking down this problem, or more specifically the need for either active or passive chargers, that changed.
@@ -9,21 +17,3 @@ Funny enough, I did not want to be highly abstract with this project. But when I
 I thought, "Holy! I can use this for version 2 of the coil launcher" because it needs a constant current or a passive pre-charger.
 Man, I love abstractions. Nevertheless, thank you for reading, and I hope you find the work here useful.
 
-# Credits:
-
-### Research & Development Enabled by:
-* [Texas instruments](https://www.ti.com/) - Thank you. That floating reference logic is literally so eloquent. I was smiling from ear to ear when I understood it.
-* [RMIT RACE TEAM](https://www.rmitmotorsport.com/) - Generally, independent of the outcome of my time as a recruit, this was quite uplifting compared to motor design.
-
-### Bibtex Citation:
-
-```
-@misc{Bowley_2026,
-  author = {Bowley, William},
-  title = {{CoilGun}},
-  url = {https://github.com/wgbowley/PreCharger},
-  year = {2026},
-  note = {GitHub repository},
-  license = {MIT}
-}
-```
