@@ -16,7 +16,7 @@ time_step:      50  n(s)
 time_domain:    10   (s)
 time_buffer:    100 u(s)
 
-msg_display:    100
+msg_display:    5
 
 [model]
 ambient_temperature:    298.15 (K)
@@ -32,7 +32,7 @@ resistance:     5 (Ω)
 [inductor]
 # Bourns - 1140-561K-RC -> reference design TI
 resistance:     125 m(Ω)
-inductance:     1.5 m(H)
+inductance:     3 m(H)
 
 [capacitor]
 resistance:     0.5 (Ω)     # Placeholder value (Unknown - ESR)
