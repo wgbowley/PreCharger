@@ -1,0 +1,139 @@
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{float} 
+
+\title{Active and passive pre-chargers (First Draft)}
+\author{William Bowley (S4226716) | Recruit Power Train}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Overview}
+This document begins with a comparison between the RC and active bang-bang pre-charger circuits, specifically scaling laws using a stress index function that includes current, power, and time.
+
+\vspace{0.5cm}
+Then, the architecture choice is based on scaling laws and the future modularity of the system given changes in system dynamics. After which, the chosen architecture will be simulated in 
+LTspice and then modelled in Altium Designer. Lastly, validation of the schematic and PCB will be done using analytical methods.
+
+\section{Architectural choices}
+An RC time constant pre-charger is a simple and redundant design that uses a resistor and capacitor to limit the average current, but does exhibit a high initial peak current. The RC 
+time constant itself is a fundamental property of the discrete components used in the circuit, though it can be affected by parasitics. The RC circuit is fed by the high voltage battery 
+system via a relay that closes the circuit to begin the charging period. The current and voltage both follow an exponential curve, with the total time constant being some multiple of the 
+$\tau$ constant depending on the required charge level.
+
+\vspace{0.75cm}
+The bang-bang pre-charger circuit is a more complex design, less redundant, but can charge faster without large initial peak currents. It uses a constant current to charge the DC link capacitor
+ with an inductor and resistor in series. The inductor feeds the capacitor over time, increasing its energy state. The resistor is a shunt resistor that is used to measure the current by the comparator, 
+ which modulates the input to the FET driver.
+
+\section{Scaling laws}
+
+Each architecture is quite different and therefore hard to compare, which in itself presents an interesting problem due to that fact. This report uses a stress index function, which, as stated in the 
+overview, uses peak current, power loss across the resistor, and charge time as stress factors. The following equations were formed to describe this relation:
+
+% Passive Stress Equation
+\begin{equation}
+S_{passive} = \frac{V}{R \cdot i_{\max}} + \frac{V^2}{10R \cdot p_{\max}} + \frac{5RC}{t_{\max}}
+\end{equation}
+
+% Active Stress Equation
+\begin{equation}
+S_{active} = \frac{i_{peak}}{i_{\max}} + \frac{P_{r}}{p_{\max}} + \frac{t}{t_{\max}}
+\end{equation}
+
+\vspace{0.5cm}
+These stress functions are a mix of simulation and analytical results. Due to the passive charger's simplistic architecture, the passive stress equation could be derived analytically, whereas the 
+active stress equation had to be modelled using a second order current model and solved with the Ralston method. The following weighting parameters were used to stabilize the results both in magnitude and dimensionality. 
+
+\begin{table}[H]
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Parameter} & \textbf{Symbol} & \textbf{Passive} & \textbf{Active} \\ \hline
+Capacitance        & $C$             & $240\,\mu\text{F}$    & $240\,\mu\text{F}$   \\ \hline
+Resistance         & $R$             & $1\,\text{k}\Omega$   & $40\,\Omega$         \\ \hline
+Input Voltage      & $V$             & $600\,\text{V}$       & $600\,\text{V}$      \\ \hline
+Inductance         & $L_1$           & N/A                   & $560\,\mu\text{H}$   \\ \hline \hline
+Max Current        & $i_{\max}$      & \multicolumn{2}{c|}{1 A}                     \\ \hline
+Max Power          & $p_{\max}$      & \multicolumn{2}{c|}{25 W}                    \\ \hline
+Max Time           & $t_{\max}$      & \multicolumn{2}{c|}{5 s}                     \\ \hline
+\end{tabular}
+\caption{System Operating Parameters}
+\end{table}
+
+Using those parameters, a series of different sweeps were run to understand the scaling relationship between the different variables, specifically capacitance, resistance, and operating voltage. 
+An important consideration is that the absolute magnitude is not strictly important. Rather, the scaling rate is most important, similar to Big O notation in computer science.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{{C:/Users/WBowl/Documents/Work/client_projects/rmit_pre_charger/images/active_vs_passive_cap_scaling_0.5A_25W_2S}.png}
+        \caption{Capacitance Scaling in linear space}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{{C:/Users/WBowl/Documents/Work/client_projects/rmit_pre_charger/images/active_vs_passive_voltage_scaling_0.5A_25W_2S}.png}
+        \caption{Voltage Scaling in log-log space}
+    \end{minipage}
+\end{figure}
+
+As can be seen in Figure 1, increasing capacitance linearly increases system stress. Hence, the relationship is directly proportional. This is true for both systems. In Figure 2, 
+the voltage scaling is less clear, but it appears both systems increase quadratically in log-log space. This can be explained by the quadratic relationship between a capacitor's energy and its voltage. 
+Interestingly, the active pre-charger in both cases seems to have a lower gradient and stress intercept, but this is most likely specific to the static parameters or favourable weighting. 
+The flat section of the graph for the active pre-charger in Figure 2 is not a numerical artifact.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{{C:/Users/WBowl/Documents/Work/client_projects/rmit_pre_charger/images/active_vs_passive_res_scaling_0.5A_25W_2S}.png}
+    \caption{Resistance Scaling Comparison in log-log space}
+\end{figure}
+
+Figure 3 shows where the active pre-charger might have an advantage, as its system stress is flat until the resistance limits the current below the hysteresis level, at which point the active system's duty cycle 
+becomes 100\%. Interestingly, the passive pre-charger has decreasing system stress at higher resistance values until an inflection point. This inflection point occurs because the time constant ($\tau$) becomes larger 
+than the stress contribution from $i_{\max}$ or $p_{\max}$.
+
+\section{Architectural decision}
+
+Given the scaling laws described above, the active system does not carry much technological weight, outside of possible lower gradients for voltage vs stress and capacitance vs stress. The active system does, 
+however, have higher efficiency due to its much lower series resistance, and it also features lower peak currents due to active control. It also offers greater future system leverage due to its ability to charge a 
+larger or smaller capacitor at the same rate, thereby decoupling the bulk DC capacitance from the design.
+
+\vspace{0.5cm}
+However, it does generate EMI, adds more failure points, and may violate regulations depending on implementation details. The passive pre-charger is simple to the point of offering major reliability, and due to this, 
+is ideal for racing. It could be argued that its simplicity limits its use cases, which is true in more extreme designs. However, for a race car, an exponentially decreasing current peak is negligible compared to the 
+transients from the inverters driving the motor, both in magnitude and duration. 
+
+\vspace{0.5cm}
+Lastly, the stress function implicitly favours the architecture that decreases charge time. However, for a race car, pre-charging the powertrain happens well before the timed event. Hence, it could be argued that 
+$i_{\max}$ or $p_{\max}$ are the real contributing factors. Therefore, a passive charger could be considered applicable to non time constrained systems, whereas an active charger is applicable to time constrained systems. 
+
+\vspace{0.5cm}
+Given the analysis above, the most optimal configuration for a race car pre-charger is a passive system. This holds true until the boundary where $\tau$ is too high due to the need for higher resistance to limit current, 
+combined with high capacitance. If start-up from a disconnected state were a required event, then an active system might be more optimal. So overall, the reasonable choice would be passive. However, due to my status as a 
+recruit and this project being an on boarding exercise (sandbox), I personally would like to design the active charger on paper, even though it is not the most optimal choice for this application.
+
+\section{Detailed design}
+
+Design began with referencing the TIDA-050063 design guide by Texas Instruments and using the reference calculations to develop two programs: firstly, `bang-bang-comparator.py`, which calculates the resistors needed to 
+measure the current flowing through the RLC circuit. The next program was `inductor-selection.py`, which aimed to select an inductor large enough to limit di/dt so that the comparator could control it via hysteresis, 
+while still remaining within a reasonable operating frequency.
+
+\vspace{0.5cm}
+After those programs were run, an LTspice model was developed using the TLV7011 comparator and UCC27517 gate driver. Both of these ICs were used by TI in their reference design. Quite elegantly, TI used a floating reference 
+(VSSS) to allow the UCC27517 to drive the high side FET. The E3M0160120K was chosen due to the lower current requirement of this design (0.2 to 1.0 A) compared to TI's ~8.0 A. Another benefit of this choice is a much lower gate 
+charge, hence higher switching frequencies can be used.
+
+\vspace{0.5cm}
+Due to the floating reference, both the comparator and gate driver must be powered by an isolated gate supply, such as the TPSI3052QDWZRQ1 in the reference design. This led to a major hurdle, and ultimately derailed the timeline 
+for delivering a schematic and PCB design in Altium. The LTspice model of the UCC27517 contained a hidden assumption that referenced net 0, essentially always grounding the floating plane. It cannot be overstated how influential
+ this was to progress. However, it was not a vendor mistake. This gate driver model was most likely not expected to be used in a floating ground arrangement. Hence, the mistake lies squarely with me for not checking the model assumptions. 
+
+\section{Next Steps}
+The next step for this project is to replace the UCC27517 with a model compatible with floating grounds. Alternatively, a high side gate driver could be used, but this would shift the project from a known problem set into a more 
+complex endeavour. On the circuit itself, the selection of the Schottky diodes and the inductor is still required. After that, modelling should continue in LTspice, if this work remains non iterative. If it is not just a paper design, 
+then performing an initial iteration to collapse the design space and assumptions would most likely be worthwhile. 
+
+\end{document}
