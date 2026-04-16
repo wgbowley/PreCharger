@@ -5,7 +5,7 @@ WINDOW 0 -36 -75 Bottom 2
 WINDOW 3 -15 -81 Top 2
 SYMATTR Prefix X
 SYMATTR Value TLV7011
-SYMATTR ModelFile C:\Users\WBowl\Documents\Work\client_projects\rmit_pre_charger\simulation\spice\components\comparator\tlv7011.lib
+SYMATTR ModelFile C:\Users\WBowl\Desktop\rmit_pre_charger\simulation\spice\components\comparator\tlv7011.lib
 PIN -64 -16 LEFT 8
 PINATTR PinName IN+
 PINATTR SpiceOrder 1

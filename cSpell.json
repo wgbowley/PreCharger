@@ -2,7 +2,7 @@
   "version": "0.2",
   "language": "en-US",
   "ignorePaths": [
-    "**/*.{fdb_latexmk,fls,log,aux,synctex,gz}"
+    "**/*.{fdb_latexmk,fls,log,aux,synctex,gz,lib,asy,pdf}"
   ],
   "words": [
     "saea",

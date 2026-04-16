@@ -19,7 +19,6 @@ derived = get_derived_units(BASE_DIR / "units.ut")
 v_main = 600 * VOLTAGE
 v_iso = 5 * VOLTAGE
 r_shunt = 5 * RESISTANCE
-r_power = 500 * RESISTANCE
 
 i_peak = 500 * MILLI * CURRENT
 i_min = 200 * MILLI * CURRENT
@@ -28,8 +27,6 @@ i_min = 200 * MILLI * CURRENT
 v_h = i_peak * r_shunt
 v_l = i_min * r_shunt
 
-shunt_power = r_shunt*(v_main/(r_shunt+r_power))**2
-print(f"Shunt power loss: {shunt_power:.3f} @ {r_power} + {r_shunt}")
 print(f"Hysteresis triggers: {v_h:.3f}, {v_l:.3f}")
 
 # resistor sizing
