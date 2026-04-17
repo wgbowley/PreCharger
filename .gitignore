@@ -11,3 +11,6 @@ simulation/spice/active_charger.log
 *.fls
 *.gz
 *.aux
+*.zip
+/1-deliverable-system/precharger/precharger-backups
+*.zip
